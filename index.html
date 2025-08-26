@@ -1,0 +1,70 @@
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="description" content="Photobooth Booking ? mobile-first single-business booking app. Book sessions, manage slots, and preview packages." />
+  <meta name="application-name" content="Photobooth Booking" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23007AFF'/%3E%3Ctext x='50' y='57' font-size='50' text-anchor='middle' fill='white' font-family='Arial, Helvetica, sans-serif'%3E?%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23007AFF'/%3E%3Ctext x='32' y='42' font-size='34' text-anchor='middle' fill='white' font-family='Arial, Helvetica, sans-serif'%3E?%3C/text%3E%3C/svg%3E" />
+  <title>Photobooth Booking</title>
+
+  <meta name="theme-color" content="#ffffff" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    html.no-js body { visibility: visible; }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background-color: var(--site-bg, #ffffff); color: var(--site-fg, #0b1220); min-height: 100vh; -webkit-font-smoothing:antialiased; }
+    /* Prevent a flash of unstyled theme before JS runs */
+    html[data-theme="dark"] { --site-bg: #0b1220; --site-fg: #e6eef8; }
+    html[data-theme="light"] { --site-bg: #ffffff; --site-fg: #0b1220; }
+    /* Provide a simple focus indicator for accessibility until app styles load */
+    :focus { outline: 2px solid Highlight; outline-offset: 2px; }
+    /* Hide the root by default until JS runs and mounts app to avoid content flash mismatch */
+    .app-root-hidden { visibility: hidden; }
+  </style>
+
+  <script>
+    (function() {
+      var html = document.documentElement;
+      try { html.classList.remove('no-js'); } catch (e) {}
+      var stored = null;
+      try { stored = localStorage.getItem('pb-theme'); } catch (e) { stored = null; }
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = stored || (prefersDark ? 'dark' : 'light');
+      html.setAttribute('data-theme', theme);
+
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#ffffff');
+
+      // Small optimization: add a class to hide content until the React app mounts,
+      // preventing a flash of the uninitialized UI. The app should remove this class
+      // as soon as it mounts (see root mounting code).
+      try {
+        document.documentElement.classList.add('app-root-hidden');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div id="root" role="application" aria-label="Photobooth Booking App"></div>
+
+  <noscript>
+    <div style="padding:1rem;background:#fff;color:#000;text-align:center;">
+      This application requires JavaScript to run. Please enable JavaScript in your browser.
+    </div>
+  </noscript>
+
+  <!-- Application entry ? in development (Vite) this is typically /src/main.tsx, in production the bundler injects a compiled bundle. -->
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
