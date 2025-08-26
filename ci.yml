@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build, lint, typecheck & test
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Type check (TypeScript)
+        run: npm run typecheck --if-present
+
+      - name: Run tests
+        # Use Jest's --ci flag (or rely on CI=true) rather than the watch-specific flag
+        run: npm test --if-present -- --ci --coverage
+
+      - name: Build production bundle
+        id: build-production
+        run: npm run build --if-present
+
+      - name: Prepare build artifact paths
+        id: prepare-artifacts
+        run: |
+          found=false
+          for p in build dist .output; do
+            if [ -d "$p" ] || [ -f "$p" ]; then
+              found=true
+              break
+            fi
+          done
+          echo "found=$found" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifact
+        if: success() && steps.build-production.outcome == 'success' && steps.prepare-artifacts.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: |
+            build
+            dist
+            .output
+          retention-days: 3
+
+      - name: Show build size (if present)
+        if: success()
+        run: |
+          if [ -d build ]; then du -sh build || true; ls -la build || true; fi
+          if [ -d dist ]; then du -sh dist || true; ls -la dist || true; fi
+          if [ -d .output ]; then du -sh .output || true; ls -la .output || true; fi
+
+  optional-checks:
+    name: Optional checks (format + security)
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (for optional checks)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check --if-present
+
+      - name: Dependency audit (npm)
+        run: npm audit --audit-level=moderate || true
